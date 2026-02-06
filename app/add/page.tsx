@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Download } from 'lucide-react';
 
 interface MovieFormProps {
@@ -9,7 +10,7 @@ interface MovieFormProps {
 }
 
 const MovieForm: React.FC<MovieFormProps> = (props) => {
-  const { onSubmit, onCancel } = props;
+  const { onSubmit } = props;
   const [title, setTitle] = useState('');
   const [year, setYear] = useState('');
   const [image, setImage] = useState<File | null>(null);
@@ -63,7 +64,7 @@ return (
           <div className="flex-1">
             <label className="relative flex flex-col items-center justify-center w-full aspect-square rounded-lg border-2 border-dashed border-white/40 bg-[#224957] hover:bg-[#2a5666] transition-colors cursor-pointer overflow-hidden">
               {preview ? (
-                <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                <Image src={preview} alt="Preview" fill className="object-cover" />
               ) : (
                 <div className="flex flex-col items-center justify-center">
                   <Download className="w-6 h-6 text-white mb-2" />

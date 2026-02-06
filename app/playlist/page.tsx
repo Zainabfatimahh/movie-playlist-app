@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { PlusCircle, LogOut, Pen } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Movie {
   id: number;
@@ -14,27 +15,29 @@ interface Movie {
 const MovieDashboard = () => {
   const router = useRouter();
 
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const defaultMovies: Movie[] = [
+    { id: 1, title: "Movie 1", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=movie+clapperboard&image_type=photo" },
+    { id: 2, title: "Movie 2", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=laptop+netflix&image_type=photo" },
+    { id: 3, title: "Movie 3", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=laptop+screen&image_type=photo" },
+    { id: 4, title: "Movie 4", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=cinema+production&image_type=photo" },
+  ];
+
+  const [movies] = useState<Movie[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("movies");
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch {
+          return defaultMovies;
+        }
+      }
+      localStorage.setItem("movies", JSON.stringify(defaultMovies));
+    }
+    return defaultMovies;
+  });
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-
-  /* ---------------- INITIAL LOAD ---------------- */
-  useEffect(() => {
-    const storedMovies = localStorage.getItem("movies");
-
-    if (storedMovies) {
-      setMovies(JSON.parse(storedMovies));
-    } else {
-      const initialMovies: Movie[] = [
-        { id: 1, title: "Movie 1", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=movie+clapperboard&image_type=photo" },
-        { id: 2, title: "Movie 2", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=laptop+netflix&image_type=photo" },
-        { id: 3, title: "Movie 3", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=laptop+screen&image_type=photo" },
-        { id: 4, title: "Movie 4", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=cinema+production&image_type=photo" },
-      ];
-      localStorage.setItem("movies", JSON.stringify(initialMovies));
-      setMovies(initialMovies);
-    }
-  }, []);
 
   /* ---------------- EDIT HANDLER ---------------- */
   const handleEditMovie = (movie: Movie) => {
@@ -83,7 +86,7 @@ const MovieDashboard = () => {
                   className="bg-[#092C39] rounded-xl p-2 pb-4 hover:scale-[1.02] transition cursor-pointer"
                 >
                   <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4">
-                    <img src={movie.imageUrl} alt={movie.title} className="w-full h-full object-cover" />
+                    <Image src={movie.imageUrl} alt={movie.title} fill className="object-cover" />
                   </div>
                   <h3 className="text-lg font-medium">{movie.title}</h3>
                   <p className="text-sm text-gray-400">{movie.year}</p>
@@ -142,7 +145,7 @@ const MovieDashboard = () => {
             </button>
 
             <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4">
-              <img src={selectedMovie.imageUrl} className="w-full h-full object-cover" />
+              <Image src={selectedMovie.imageUrl} alt={selectedMovie.title} fill className="object-cover" />
             </div>
 
             <h3 className="text-xl font-semibold">{selectedMovie.title}</h3>
