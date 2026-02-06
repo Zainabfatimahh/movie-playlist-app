@@ -4,24 +4,15 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Download } from 'lucide-react';
 
-interface MovieFormProps {
-  onSubmit?: (data: { title: string; year: string; image: File | null }) => void;
-  onCancel?: () => void;
-}
-
-const MovieForm: React.FC<MovieFormProps> = (props) => {
-  const { onSubmit } = props;
+const MovieForm = () => {
   const [title, setTitle] = useState('');
   const [year, setYear] = useState('');
-  const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const router = useRouter();
-
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -30,10 +21,59 @@ const MovieForm: React.FC<MovieFormProps> = (props) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (onSubmit) {
-      onSubmit({ title, year, image });
+    if (!title || !year) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+      
+      // Submit to backend as JSON
+      const res = await fetch("http://localhost:3001/movies", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          year,
+          imageUrl: preview || "https://csspicker.dev/api/image/?q=movie+clapperboard&image_type=photo",
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        alert(`Failed to add movie: ${error.error?.message || "Unknown error"}`);
+        return;
+      }
+
+      const newMovie = await res.json();
+
+      // Get existing movies from localStorage
+      const stored = localStorage.getItem("movies");
+      const movies = stored ? JSON.parse(stored) : [];
+
+      // Add new movie
+      const movieToAdd = {
+        id: newMovie.id || Date.now(),
+        title: newMovie.title,
+        year: newMovie.year,
+        imageUrl: newMovie.imageUrl || preview || "https://csspicker.dev/api/image/?q=movie+clapperboard&image_type=photo",
+      };
+
+      movies.push(movieToAdd);
+      localStorage.setItem("movies", JSON.stringify(movies));
+
+      // Redirect to playlist
+      router.push("/playlist");
+    } catch (err) {
+      console.error("Error adding movie:", err);
+      alert("Error adding movie");
     }
   };
 
@@ -111,8 +151,7 @@ return (
 
               <button
                 type="submit"
-                onClick={() => router.push("/playlist")}
-                className="flex-1 py-3 bg-[#22c55e] text-white rounded-lg"
+                className="flex-1 py-3 bg-[#22c55e] text-white rounded-lg hover:bg-green-500 transition-colors"
               >
                 Submit
               </button>

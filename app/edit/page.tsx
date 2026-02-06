@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Movie {
   id: number;
@@ -64,6 +65,18 @@ const EditMoviePage = () => {
     router.push("/playlist");
   };
 
+  /* -------- DELETE -------- */
+  const handleDelete = () => {
+    if (!movie || !window.confirm("Are you sure you want to delete this movie?")) return;
+
+    const movies: Movie[] = JSON.parse(localStorage.getItem("movies") || "[]");
+    const filtered = movies.filter((m) => m.id !== movie.id);
+
+    localStorage.setItem("movies", JSON.stringify(filtered));
+    localStorage.removeItem("editMovieId");
+    router.push("/playlist");
+  };
+
   if (!movie) return null;
 
   return (
@@ -88,7 +101,7 @@ const EditMoviePage = () => {
             <div className="flex-1">
               <label className="relative flex flex-col items-center justify-center w-full aspect-square rounded-lg border-2 border-dashed border-white/40 bg-[#224957] hover:bg-[#2a5666] transition-colors cursor-pointer overflow-hidden">
                 {preview ? (
-                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  <Image src={preview} alt="Preview" fill className="object-cover" />
                 ) : (
                   <div className="flex flex-col items-center">
                     <Download className="w-6 h-6 text-white mb-2" />
@@ -136,6 +149,14 @@ const EditMoviePage = () => {
                   className="flex-1 py-3 bg-[#22c55e] text-white font-bold rounded-lg hover:bg-[#1eb054]"
                 >
                   Save
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="flex-1 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700"
+                >
+                  Delete
                 </button>
               </div>
             </div>

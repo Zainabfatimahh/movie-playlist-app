@@ -35,7 +35,6 @@ export default function MainPage() {
       </div>
       {/* Bottom waves */}
       <div className="absolute bottom-0 left-0 w-full overflow-hidden">
-
         {/* Wave 1 */}
         <svg
           viewBox="0 0 1440 320"
@@ -61,7 +60,6 @@ export default function MainPage() {
             d="M0,288L48,272C96,256,192,224,288,213.3C384,203,480,213,576,218.7C672,224,768,224,864,202.7C960,181,1056,139,1152,128C1248,117,1344,139,1392,149.3L1440,160L1440,320L0,320Z"
           />
         </svg>
-
       </div>
     </div>
   );

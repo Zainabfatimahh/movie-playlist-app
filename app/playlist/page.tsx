@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PlusCircle, LogOut, Pen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -15,31 +15,32 @@ interface Movie {
 const MovieDashboard = () => {
   const router = useRouter();
 
-  const defaultMovies: Movie[] = [
-    { id: 1, title: "Movie 1", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=movie+clapperboard&image_type=photo" },
-    { id: 2, title: "Movie 2", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=laptop+netflix&image_type=photo" },
-    { id: 3, title: "Movie 3", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=laptop+screen&image_type=photo" },
-    { id: 4, title: "Movie 4", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=cinema+production&image_type=photo" },
-  ];
-
-  const [movies] = useState<Movie[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("movies");
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch {
-          return defaultMovies;
-        }
-      }
-      localStorage.setItem("movies", JSON.stringify(defaultMovies));
-    }
-    return defaultMovies;
-  });
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  /* ---------------- EDIT HANDLER ---------------- */
+  useEffect(() => {
+    const defaultMovies: Movie[] = [
+      { id: 1, title: "Movie 1", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=movie+clapperboard&image_type=photo" },
+      { id: 2, title: "Movie 2", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=laptop+netflix&image_type=photo" },
+      { id: 3, title: "Movie 3", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=laptop+screen&image_type=photo" },
+      { id: 4, title: "Movie 4", year: "2021", imageUrl: "https://csspicker.dev/api/image/?q=cinema+production&image_type=photo" },
+    ];
+
+    const stored = localStorage.getItem("movies");
+    if (stored) {
+      try {
+        setMovies(JSON.parse(stored));
+      } catch {
+        setMovies(defaultMovies);
+      }
+    } else {
+      setMovies(defaultMovies);
+      localStorage.setItem("movies", JSON.stringify(defaultMovies));
+    }
+  }, []);
+
+  /* -------- EDIT HANDLER -------- */
   const handleEditMovie = (movie: Movie) => {
     localStorage.setItem("editMovieId", movie.id.toString());
     setSelectedMovie(null);
@@ -76,23 +77,35 @@ const MovieDashboard = () => {
             </button>
           </header>
 
-          {/* MOVIE GRID */}
+          {/* MOVIE GRID or EMPTY STATE */}
           <main className="max-w-6xl mx-auto w-full px-6 overflow-hidden">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {movies.map((movie) => (
-                <div
-                  key={movie.id}
-                  onClick={() => setSelectedMovie(movie)}
-                  className="bg-[#092C39] rounded-xl p-2 pb-4 hover:scale-[1.02] transition cursor-pointer"
+            {movies.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-[60vh]">
+                <h2 className="text-4xl font-bold mb-8">Your movie list is empty</h2>
+                <button
+                  onClick={() => router.push("/add")}
+                  className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-3 px-8 rounded-lg transition"
                 >
-                  <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4">
-                    <Image src={movie.imageUrl} alt={movie.title} fill className="object-cover" />
+                  Add a new movie
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {movies.map((movie) => (
+                  <div
+                    key={movie.id}
+                    onClick={() => setSelectedMovie(movie)}
+                    className="bg-[#092C39] rounded-xl p-2 pb-4 hover:scale-[1.02] transition cursor-pointer"
+                  >
+                    <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4 relative">
+                      <Image src={movie.imageUrl} alt={movie.title} fill className="object-cover" sizes="(max-width: 768px) 50vw, 25vw" />
+                    </div>
+                    <h3 className="text-lg font-medium">{movie.title}</h3>
+                    <p className="text-sm text-gray-400">{movie.year}</p>
                   </div>
-                  <h3 className="text-lg font-medium">{movie.title}</h3>
-                  <p className="text-sm text-gray-400">{movie.year}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </main>
         </div>
       </div>
@@ -144,8 +157,8 @@ const MovieDashboard = () => {
               <Pen className="w-4 h-4 text-white" />
             </button>
 
-            <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4">
-              <Image src={selectedMovie.imageUrl} alt={selectedMovie.title} fill className="object-cover" />
+            <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4 relative">
+              <Image src={selectedMovie.imageUrl} alt={selectedMovie.title} fill className="object-cover" sizes="340px" />
             </div>
 
             <h3 className="text-xl font-semibold">{selectedMovie.title}</h3>

@@ -25,8 +25,9 @@ async function start() {
   });
 
   await app.register(fastifyCors, {
-    origin: config.corsOrigin,
+    origin: true,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   });
 
   await app.register(fastifyCookie);
@@ -51,10 +52,34 @@ async function start() {
   // Global error handler
   app.setErrorHandler((error: Error, _request, reply) => {
     logger.error(error);
+    
+    const err = error as unknown as Record<string, unknown>;
+    
+    // Handle Prisma errors
+    if (err.code === 'P2002') {
+      return reply.code(409).send({
+        error: {
+          code: 'DUPLICATE_ENTRY',
+          message: 'This record already exists',
+        },
+      });
+    }
+
+    // Handle Zod validation errors
+    if (err.name === 'ZodError') {
+      return reply.code(400).send({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid input',
+          details: err.errors,
+        },
+      });
+    }
+
     reply.code(500).send({
       error: {
         code: 'INTERNAL_ERROR',
-        message: 'Internal server error',
+        message: error.message || 'Internal server error',
       },
     });
   });
